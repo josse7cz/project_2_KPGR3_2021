@@ -1,6 +1,7 @@
 #version 150
 in vec2 inPosition; // input from the vertex buffer
 
+uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform float type;
@@ -30,11 +31,14 @@ void main() {
 	vec2 position = inPosition * 2 - 1;
 
 	vec3 finalPosition;
+//	vec3 normal;
 	if (type == 0) {
 		finalPosition = getSphere(position);
+//		normal = getSphereNormal(position);
 	} else {
 		finalPosition = vec3(position, getZ(position));
+//		normal = getOtherNormal(position);
 	}
 	vec4 pos4 = vec4(finalPosition, 1.0);
-	gl_Position = projection * view * pos4;
+	gl_Position = projection * view * model * pos4;
 } 

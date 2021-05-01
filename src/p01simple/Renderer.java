@@ -3,9 +3,7 @@ package p01simple;
 
 import lwjglutils.*;
 import org.lwjgl.glfw.*;
-import transforms.Camera;
-import transforms.Mat4PerspRH;
-import transforms.Vec3D;
+import transforms.*;
 
 import java.io.IOException;
 
@@ -33,6 +31,7 @@ public class Renderer extends AbstractRenderer {
     private double oldMx, oldMy;
     private OGLRenderTarget renderTarget;
     private OGLTexture2D.Viewer viewer;
+    private int modelLocation;
 
     @Override
     public void init() {
@@ -42,9 +41,9 @@ public class Renderer extends AbstractRenderer {
         OGLUtils.shaderCheck();
 
         glClearColor(0.1f, 0.1f, 0.1f, 1f);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         shaderProgramMain = ShaderUtils.loadProgram("/main");
+        modelLocation = glGetUniformLocation(shaderProgramMain, "model");
         viewLocation = glGetUniformLocation(shaderProgramMain, "view");
         projectionLocation = glGetUniformLocation(shaderProgramMain, "projection");
         typeLocation = glGetUniformLocation(shaderProgramMain, "type");
@@ -56,12 +55,15 @@ public class Renderer extends AbstractRenderer {
                 .withAzimuth(5 / 4f * Math.PI)
                 .withZenith(-1 / 5f * Math.PI);
 
+        // camera = camera.forward(1);
+
         projection = new Mat4PerspRH(
                 Math.PI / 3,
                 height / (float) width,
                 0.1,
                 20
         );
+//        new Mat4OrthoRH()
 
 //        float[] vertexBufferData = {
 //                -1, -1,
@@ -94,7 +96,9 @@ public class Renderer extends AbstractRenderer {
         glEnable(GL_DEPTH_TEST);
         // text-renderer disables depth-test (z-buffer)
 
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         renderMain();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         renderPostProcessing();
 
         glDisable(GL_DEPTH_TEST);
@@ -116,8 +120,12 @@ public class Renderer extends AbstractRenderer {
         textureMosaic.bind(shaderProgramMain, "textureMosaic", 0);
 
         glUniform1f(typeLocation, 0f);
+        glUniformMatrix4fv(modelLocation, false, new Mat4Transl(2, 0, 0).floatArray());
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+
         glUniform1f(typeLocation, 1f);
+//        glUniformMatrix4fv(..., false, new Mat4Transl(camera.getPosition()).floatArray());
+        glUniformMatrix4fv(modelLocation, false, new Mat4Transl(-2, 0, 0).floatArray());
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
     }
 
